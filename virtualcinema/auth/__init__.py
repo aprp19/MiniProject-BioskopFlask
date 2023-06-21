@@ -1,0 +1,1 @@
+from virtualcinema.auth.authentication import auth
