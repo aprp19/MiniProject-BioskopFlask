@@ -169,3 +169,21 @@ def handler_get_wallet(id_user):
         return {"Message": "Success", "Data": response}, 200
     else:
         return {"Error": "Unauthorized"}, 401
+
+
+@account.route('/wallet/topup/<id_user>', methods=['PUT'])
+@auth
+def handler_put_wallet(id_user):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        query = ModelWallet.query.filter_by(id_user=id_user).first()
+        if not query:
+            return {"Error": "Wallet not found"}, 404
+        json = request.get_json()
+        if 'w_balance' in json:
+            query.w_balance = int(query.w_balance) + int(json['w_balance'])
+        db_session.add(query)
+        db_session.commit()
+        return {"Message": "Wallet updated", "Current wallet": query.w_balance}, 200
+    else:
+        return {"Error": "Unauthorized"}, 401
