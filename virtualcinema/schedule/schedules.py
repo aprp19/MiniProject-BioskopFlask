@@ -63,3 +63,43 @@ def handler_post_film_schedule():
             return {"Message": "Invalid Request"}, 400
     else:
         return {"Message": "Unauthorized"}, 403
+
+
+@film_schedule.route('/film_schedule/<id_schedule>', methods=['PUT'])
+@auth
+def handler_put_film_schedule(id_schedule):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        if request.is_json:
+            json = request.get_json()
+            update_film_schedule = ModelFilmSchedule.query.filter_by(id_schedule=id_schedule).first()
+            if not update_film_schedule:
+                return {"Error": "Film schedule not found"}, 404
+            else:
+                update_film_schedule.schedule_studio = json['schedule_studio']
+                update_film_schedule.schedule_date = json['schedule_date']
+                update_film_schedule.schedule_time = json['schedule_time']
+                update_film_schedule.schedule_price = json['schedule_price']
+                db_session.add(update_film_schedule)
+                db_session.commit()
+                return {"Message": "Film schedule updated succesfully",
+                        "Data": f"{update_film_schedule.schedule_studio}"}, 200
+        else:
+            return {"Message": "Invalid Request"}, 400
+    else:
+        return {"Message": "Unauthorized"}, 403
+
+
+@film_schedule.route('/film_schedule/<id_schedule>', methods=['DELETE'])
+@auth
+def handler_delete_film_schedule(id_schedule):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        query = ModelFilmSchedule.query.filter_by(id_schedule=id_schedule).first()
+        if not query:
+            return {"Error": "Film schedule not found"}, 404
+        db_session.delete(query)
+        db_session.commit()
+        return {"Message": "Film schedule deleted succesfully"}, 200
+    else:
+        return {"Message": "Unauthorized"}, 403
