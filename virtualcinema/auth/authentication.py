@@ -1,5 +1,5 @@
 from flask import request
-from virtualcinema.model.models import ModelAccount
+from virtualcinema.models.models import ModelAccount
 
 
 def auth(func):

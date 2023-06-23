@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from virtualcinema.auth import auth
-from virtualcinema.model.models import ModelAccount, ModelWallet
+from virtualcinema.models.models import ModelAccount, ModelWallet
 from virtualcinema.db.database import db_session
 
 account = Blueprint('account', __name__)

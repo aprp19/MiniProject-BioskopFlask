@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
-from virtualcinema.model.models import ModelFilm, ModelAccount, ModelFilmSchedule
+from virtualcinema.models.models import ModelFilm, ModelAccount, ModelFilmSchedule
 
 film_schedule = Blueprint('film_schedule', __name__)
 
@@ -58,7 +58,7 @@ def handler_post_film_schedule():
             )
             db_session.add(add_film_schedule)
             db_session.commit()
-            return {"Message": "Film schedule added succesfully", "Data": f"{add_film_schedule.id_film}"}, 200
+            return {"Message": "Film schedules added succesfully", "Data": f"{add_film_schedule.id_film}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
     else:
@@ -74,7 +74,7 @@ def handler_put_film_schedule(id_schedule):
             json = request.get_json()
             update_film_schedule = ModelFilmSchedule.query.filter_by(id_schedule=id_schedule).first()
             if not update_film_schedule:
-                return {"Error": "Film schedule not found"}, 404
+                return {"Error": "Film schedules not found"}, 404
             else:
                 update_film_schedule.schedule_studio = json['schedule_studio']
                 update_film_schedule.schedule_date = json['schedule_date']
@@ -82,7 +82,7 @@ def handler_put_film_schedule(id_schedule):
                 update_film_schedule.schedule_price = json['schedule_price']
                 db_session.add(update_film_schedule)
                 db_session.commit()
-                return {"Message": "Film schedule updated succesfully",
+                return {"Message": "Film schedules updated succesfully",
                         "Data": f"{update_film_schedule.schedule_studio}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
@@ -97,9 +97,9 @@ def handler_delete_film_schedule(id_schedule):
     if session.u_role == 'Admin':
         query = ModelFilmSchedule.query.filter_by(id_schedule=id_schedule).first()
         if not query:
-            return {"Error": "Film schedule not found"}, 404
+            return {"Error": "Film schedules not found"}, 404
         db_session.delete(query)
         db_session.commit()
-        return {"Message": "Film schedule deleted succesfully"}, 200
+        return {"Message": "Film schedules deleted succesfully"}, 200
     else:
         return {"Message": "Unauthorized"}, 403

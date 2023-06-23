@@ -57,7 +57,7 @@ class ModelFilmSchedule(db.Model):
     schedule_date = db.Column(db.String(25), nullable=False)
     schedule_time = db.Column(db.String(25), nullable=False)
     schedule_price = db.Column(db.Integer, nullable=False)
-    film_order = db.relationship('ModelOrder', backref='schedule', lazy=True)
+    film_order = db.relationship('ModelOrder', backref='schedules', lazy=True)
 
 
 class ModelSeat(db.Model):
@@ -74,8 +74,10 @@ class ModelOrder(db.Model):
     id_order = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     id_user = db.Column(db.Integer, db.ForeignKey('account.id_user'), nullable=False)
     id_schedule = db.Column(db.Integer, db.ForeignKey('filmschedule.id_schedule'), nullable=False)
-    order_seat = db.Column(db.String(25), nullable=False)
+    order_studio = db.Column(db.String(25), nullable=False)
+    # order_seat = db.Column(db.String(25), nullable=False)
     order_date = db.Column(db.String(25), nullable=False)
+    order_time = db.Column(db.String(25), nullable=False)
     order_qty = db.Column(db.Integer, nullable=False)
     order_total = db.Column(db.Integer, nullable=False)
     orderseat = db.relationship('ModelOrderSeat', backref='order', lazy=True)
