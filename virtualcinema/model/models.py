@@ -53,6 +53,7 @@ class ModelFilmSchedule(db.Model):
 
     id_schedule = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     id_film = db.Column(db.Integer, db.ForeignKey('film.id_film'), nullable=False)
+    schedule_studio = db.Column(db.String(25), nullable=False)
     schedule_date = db.Column(db.String(25), nullable=False)
     schedule_time = db.Column(db.String(25), nullable=False)
     schedule_price = db.Column(db.Integer, nullable=False)
@@ -85,6 +86,10 @@ class ModelOrderSeat(db.Model):
 
     id_order = db.Column(db.Integer, db.ForeignKey('orders.id_order'), primary_key=True)
     id_seat = db.Column(db.Integer, db.ForeignKey('seat.id_seat'), primary_key=True)
+    film_name = db.Column(db.String(25), nullable=False)
+    schedule_studio = db.Column(db.String(25), nullable=False)
+    schedule_date = db.Column(db.String(25), nullable=False)
+    schedule_time = db.Column(db.String(25), nullable=False)
 
 
 class ModelPayment(db.Model):
