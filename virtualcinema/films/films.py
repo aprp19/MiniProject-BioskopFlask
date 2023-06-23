@@ -178,3 +178,18 @@ def handler_post_film_category(id_film):
             return {"Message": "Invalid Request"}, 400
     else:
         return {"Message": "Unauthorized"}, 403
+
+
+@film.route('/film_category/<id_film>/<id_category>', methods=['DELETE'])
+@auth
+def handler_delete_film_category(id_film, id_category):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        query = ModelFilmCategory.query.filter_by(id_film=id_film, id_category=id_category).first()
+        if not query:
+            return {"Error": "Film category not found"}, 404
+        db_session.delete(query)
+        db_session.commit()
+        return {"Message": "Film category deleted succesfully"}, 200
+    else:
+        return {"Message": "Unauthorized"}, 403
