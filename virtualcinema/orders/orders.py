@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
 from virtualcinema.models.models import ModelOrder, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm, \
-    ModelSeat
+    ModelSeat, ModelPayment, ModelWallet
 
 orders = Blueprint('orders', __name__)
 
@@ -78,4 +78,17 @@ def handler_post_orders():
 
         db_session.add(add_order)
         db_session.commit()
-        return {"Message": "Success"}, 200
+
+        query_balance = ModelWallet.query.filter_by(id_user=session.id_user).first()
+        if query_balance.w_balance < add_order.order_total:
+            return {"Error": "Insufficient balance"}, 400
+        else:
+            query_balance.w_balance = query_balance.w_balance - add_order.order_total
+            add_payment = ModelPayment(
+                id_order=ModelOrder.query.filter_by(id_user=session.id_user).first().id_order,
+                order_total=add_order.order_total,
+                payment_status="Paid"
+            )
+        db_session.add(add_payment)
+        db_session.commit()
+        return {"Message": "Order added succesfully"}, 200

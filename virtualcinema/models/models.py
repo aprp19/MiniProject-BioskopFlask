@@ -80,7 +80,8 @@ class ModelOrder(db.Model):
     order_time = db.Column(db.String(25), nullable=False)
     order_qty = db.Column(db.Integer, nullable=False)
     order_total = db.Column(db.Integer, nullable=False)
-    orderseat = db.relationship('ModelOrderSeat', backref='order', lazy=True)
+    orderseat = db.relationship('ModelOrderSeat', backref='orders', lazy=True)
+    payments = db.relationship('ModelPayment', backref='orders', lazy=True)
 
 
 class ModelOrderSeat(db.Model):
@@ -98,6 +99,6 @@ class ModelPayment(db.Model):
     __tablename__ = 'payments'
 
     id_payment = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    id_order = db.Column(db.Integer, db.ForeignKey('order.id_order'), nullable=False)
+    id_order = db.Column(db.Integer, db.ForeignKey('orders.id_order'), nullable=False)
     order_total = db.Column(db.Integer, nullable=False)
     payment_status = db.Column(db.String(25), nullable=False)
