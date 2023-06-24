@@ -75,7 +75,7 @@ class ModelOrder(db.Model):
     id_user = db.Column(db.Integer, db.ForeignKey('account.id_user'), nullable=False)
     id_schedule = db.Column(db.Integer, db.ForeignKey('filmschedule.id_schedule'), nullable=False)
     order_studio = db.Column(db.String(25), nullable=False)
-    # order_seat = db.Column(db.String(25), nullable=False)
+    order_seat = db.Column(db.String(25), nullable=False)
     order_date = db.Column(db.String(25), nullable=False)
     order_time = db.Column(db.String(25), nullable=False)
     order_qty = db.Column(db.Integer, nullable=False)

@@ -23,10 +23,11 @@ def handler_get_orders():
         "id_order": row.id_order,
         "id_user": row.id_user,
         "id_schedule": row.id_schedule,
-        "film_name": row.schedule.film.film_name,
-        "schedule_studio": row.schedule_studio,
-        "schedule_date": row.schedule_date,
-        "schedule_time": row.schedule_time,
+        "film_name": row.schedules.film.film_name,
+        "order_seat": row.order_seat,
+        "order_studio": row.order_studio,
+        "order_date": row.order_date,
+        "order_time": row.order_time,
     } for row in query]
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
@@ -35,41 +36,46 @@ def handler_get_orders():
 @auth
 def handler_post_orders():
     session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
-    if session.u_role == 'Admin':
-        if request.is_json:
-            json = request.get_json()
-            add_order = ModelOrder(
-                id_user=session.id_user,
-                id_schedule=json['id_schedule'],
-                # order_seat=json['order_seat'],
-                order_studio=ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first().schedule_studio,
-                order_date=ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first().schedule_date,
-                order_time=ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first().schedule_time,
-                order_qty=len(json['order_seat']),
-                order_total=ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first().schedule_price * len(json['order_seat'])
+    if request.is_json:
+        json = request.get_json()
+        get_FilmSchedule = ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first()
+        add_order = ModelOrder(
+            id_user=session.id_user,
+            id_schedule=json['id_schedule'],
+            order_seat=json['order_seat'],
+            order_studio=get_FilmSchedule.schedule_studio,
+            order_date=get_FilmSchedule.schedule_date,
+            order_time=get_FilmSchedule.schedule_time,
+            order_qty=len(json['order_seat']),
+            order_total=get_FilmSchedule.schedule_price * len(json['order_seat'])
+        )
+
+        for dulplicate_seat in range(0, len(json['order_seat'])):
+            for data in range(dulplicate_seat + 1, len(json['order_seat'])):
+                if json['order_seat'][data] == json['order_seat'][dulplicate_seat]:
+                    return {"Error": "Cannot add duplicate seat"}, 400
+
+        for seat in json['order_seat']:
+            add_order.orderseat.append(
+                ModelOrderSeat(
+                    id_order=add_order.id_order,
+                    id_seat=ModelSeat.query.filter_by(seat_number=seat).first().id_seat,
+                    film_name=get_FilmSchedule.film.film_name,
+                    schedule_studio=get_FilmSchedule.schedule_studio,
+                    schedule_date=get_FilmSchedule.schedule_date,
+                    schedule_time=get_FilmSchedule.schedule_time,
+                )
             )
 
-            # query_seat = ModelOrderSeat.query.all()
-            # if not query_seat.id_seat == ModelSeat.query.filter_by(id_seat=json['order_seat']).first().id_seat and query_seat.film_name == add_order.film_name and query_seat.schedule_studio == add_order.schedule_studio and query_seat.schedule_date == add_order.schedule_date and query_seat.schedule_time == add_order.schedule_time:
-            #     return {"Error": "Seat already taken"}, 400
+        for each_seat in json['order_seat']:
+            if ModelOrderSeat.query.filter_by(schedule_studio=add_order.order_studio,
+                                              schedule_date=add_order.order_date,
+                                              schedule_time=add_order.order_time).join(
+                ModelSeat).filter(
+                ModelSeat.seat_number == each_seat
+            ).first():
+                return {"Error": "Seat already exists"}, 400
 
-            for seat in json['order_seat']:
-                add_order.orderseat.append(
-                    ModelOrderSeat(
-                        id_order=add_order.id_order,
-                        id_seat=ModelSeat.query.filter_by(seat_number=seat).first().id_seat,
-                        film_name=ModelFilmSchedule.query.filter_by(id_schedule=add_order.id_schedule).first().film.film_name,
-                        schedule_studio=ModelFilmSchedule.query.filter_by(id_schedule=add_order.id_schedule).first().schedule_studio,
-                        schedule_date=ModelFilmSchedule.query.filter_by(id_schedule=add_order.id_schedule).first().schedule_date,
-                        schedule_time=ModelFilmSchedule.query.filter_by(id_schedule=add_order.id_schedule).first().schedule_time,
-                    )
-                )
-            db_session.add(add_order)
-            db_session.commit()
-            return {"Message": "Success"}, 200
-    else:
-        return {"Message": "Unauthorized"}, 403
-
-#
-# @orders.route('/orders/<id_order>', methods=['DELETE'])
-# @auth
+        db_session.add(add_order)
+        db_session.commit()
+        return {"Message": "Success"}, 200
