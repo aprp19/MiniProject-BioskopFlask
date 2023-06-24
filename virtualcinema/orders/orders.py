@@ -50,6 +50,10 @@ def handler_post_orders():
             order_total=get_FilmSchedule.schedule_price * len(json['order_seat'])
         )
 
+        query_balance = ModelWallet.query.filter_by(id_user=session.id_user).first()
+        if query_balance.w_balance < add_order.order_total:
+            return {"Error": "Insufficient balance"}, 400
+
         for dulplicate_seat in range(0, len(json['order_seat'])):
             for data in range(dulplicate_seat + 1, len(json['order_seat'])):
                 if json['order_seat'][data] == json['order_seat'][dulplicate_seat]:
@@ -79,16 +83,17 @@ def handler_post_orders():
         db_session.add(add_order)
         db_session.commit()
 
-        query_balance = ModelWallet.query.filter_by(id_user=session.id_user).first()
-        if query_balance.w_balance < add_order.order_total:
-            return {"Error": "Insufficient balance"}, 400
-        else:
-            query_balance.w_balance = query_balance.w_balance - add_order.order_total
-            add_payment = ModelPayment(
-                id_order=ModelOrder.query.filter_by(id_user=session.id_user).first().id_order,
-                order_total=add_order.order_total,
-                payment_status="Paid"
-            )
+        selling_increment = ModelFilm.query.filter_by(id_film=get_FilmSchedule.film.id_film).first()
+        selling_increment.film_selling += len(json['order_seat'])
+
+        query_balance.w_balance = query_balance.w_balance - add_order.order_total
+        add_payment = ModelPayment(
+            id_order=ModelOrder.query.filter_by(id_user=session.id_user).first().id_order,
+            order_total=add_order.order_total,
+            payment_status="Paid"
+        )
+
+        db_session.add(selling_increment)
         db_session.add(add_payment)
         db_session.commit()
         return {"Message": "Order added succesfully"}, 200
