@@ -21,7 +21,6 @@ def handler_get_film(id_film):
             'film_price': row.film_price,
             'film_selling': row.film_selling,
         } for row in query]
-
         return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
     query = ModelFilm.query.filter_by(id_film=id_film).first()

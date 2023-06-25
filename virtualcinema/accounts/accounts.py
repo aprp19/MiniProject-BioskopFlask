@@ -123,20 +123,15 @@ def handler_delete_account(id_user):
         if not query_user:
             return {"Error": "Account not found"}, 404
         query_wallet = ModelWallet.query.filter_by(id_user=session.id_user).first()
-        db_session.delete(query_wallet)
-        db_session.commit()
-        db_session.delete(query_user)
-        db_session.commit()
-        return {"Message": "Account deleted"}, 200
     else:
         query_user = ModelAccount.query.filter_by(
             id_user=ModelAccount.query.filter_by(u_username=request.authorization.username).first().id_user).first()
         query_wallet = ModelWallet.query.filter_by(id_user=query_user.id_user).first()
-        db_session.delete(query_wallet)
-        db_session.commit()
-        db_session.delete(query_user)
-        db_session.commit()
-        return {"Message": "Account deleted"}, 200
+    db_session.delete(query_wallet)
+    db_session.commit()
+    db_session.delete(query_user)
+    db_session.commit()
+    return {"Message": "Account deleted"}, 200
 
 
 @account.route('/wallet/<id_user>', methods=['GET'])

@@ -85,6 +85,7 @@ class ModelOrder(db.Model):
     payments = db.relationship('ModelPayment', backref='orders', lazy=True)
     tickets = db.relationship('ModelTickets', backref='orders', lazy=True)
 
+
 class ModelOrderSeat(db.Model):
     __tablename__ = 'orderseat'
 

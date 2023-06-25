@@ -56,7 +56,6 @@ def handler_put_seats(id_seat):
         return {"Message": "Unauthorized"}, 403
 
 
-
 @seats.route('/seats/<id_seat>', methods=['DELETE'])
 @auth
 def handler_delete_seats(id_seat):
