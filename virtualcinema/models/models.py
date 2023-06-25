@@ -11,6 +11,7 @@ class ModelAccount(db.Model):
     u_role = db.Column(db.String(25), nullable=False)
     wallet = db.relationship('ModelWallet', backref='account', lazy=True)
     order = db.relationship('ModelOrder', backref='account', lazy=True)
+    tickets = db.relationship('ModelTickets', backref='account', lazy=True)
 
 
 class ModelWallet(db.Model):
@@ -82,7 +83,7 @@ class ModelOrder(db.Model):
     order_total = db.Column(db.Integer, nullable=False)
     orderseat = db.relationship('ModelOrderSeat', backref='orders', lazy=True)
     payments = db.relationship('ModelPayment', backref='orders', lazy=True)
-
+    tickets = db.relationship('ModelTickets', backref='orders', lazy=True)
 
 class ModelOrderSeat(db.Model):
     __tablename__ = 'orderseat'
@@ -102,3 +103,13 @@ class ModelPayment(db.Model):
     id_order = db.Column(db.Integer, db.ForeignKey('orders.id_order'), nullable=False)
     order_total = db.Column(db.Integer, nullable=False)
     payment_status = db.Column(db.String(25), nullable=False)
+    tickets = db.relationship('ModelTickets', backref='payments', lazy=True)
+
+
+class ModelTickets(db.Model):
+    __tablename__ = 'tickets'
+
+    id_ticket = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    id_user = db.Column(db.Integer, db.ForeignKey('account.id_user'), nullable=False)
+    id_order = db.Column(db.Integer, db.ForeignKey('orders.id_order'), nullable=False)
+    id_payment = db.Column(db.Integer, db.ForeignKey('payments.id_payment'), nullable=False)

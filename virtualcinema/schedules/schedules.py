@@ -11,6 +11,7 @@ film_schedule = Blueprint('film_schedule', __name__)
 def handler_get_film_schedule():
     query = ModelFilmSchedule.query.all()
     response = [{
+        "id_schedule": row.id_schedule,
         "film_name": row.film.film_name,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,

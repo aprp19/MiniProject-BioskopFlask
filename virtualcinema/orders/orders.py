@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
 from virtualcinema.models.models import ModelOrder, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm, \
-    ModelSeat, ModelPayment, ModelWallet
+    ModelSeat, ModelPayment, ModelWallet, ModelTickets
 
 orders = Blueprint('orders', __name__)
 
@@ -95,5 +95,14 @@ def handler_post_orders():
 
         db_session.add(selling_increment)
         db_session.add(add_payment)
+        db_session.commit()
+
+        add_ticket = ModelTickets(
+            id_user=session.id_user,
+            id_order=ModelOrder.query.filter_by(id_user=session.id_user).first().id_order,
+            id_payment=ModelPayment.query.filter_by(id_order=add_payment.id_order).first().id_payment,
+        )
+
+        db_session.add(add_ticket)
         db_session.commit()
         return {"Message": "Order added succesfully"}, 200
