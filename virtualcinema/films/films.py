@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
-from virtualcinema.models.models import ModelAccount, ModelFilm, ModelFilmCategory, ModelFilmSchedule, ModelCategory
+from virtualcinema.models.models import ModelAccount, ModelFilm, ModelFilmCategory, ModelCategory
 
 film = Blueprint('film', __name__)
 
