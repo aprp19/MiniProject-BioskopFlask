@@ -192,3 +192,24 @@ def handler_delete_film_category(id_film, id_category):
         return {"Message": "Film category deleted succesfully"}, 200
     else:
         return {"Message": "Unauthorized"}, 403
+
+
+@film.route('/film/report', methods=['GET'])
+@auth
+def handler_get_report():
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        query = ModelFilm.query.order_by(ModelFilm.film_selling.desc()).limit(5).all()
+        response = [{
+            'id_film': row.id_film,
+            'film_name': row.film_name,
+            'film_duration': row.film_duration,
+            'category': [cat.category_name for cat in
+                         ModelCategory.query.filter(ModelFilmCategory.id_film == row.id_film,
+                                                    ModelCategory.id_category == ModelFilmCategory.id_category).all()],
+            'film_price': row.film_price,
+            'film_selling': row.film_selling,
+        } for row in query]
+        return {"Message": "Success", "Count": len(response), "Data": response}, 200
+    else:
+        return {"Message": "Unauthorized"}, 403
