@@ -18,6 +18,8 @@ def handler_get_film_schedule():
         "schedule_time": row.schedule_time,
         "schedule_price": row.schedule_price,
     } for row in query]
+    if not query:
+        return {"Error": "Schedule empty"}, 404
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
 
@@ -26,9 +28,9 @@ def handler_search_film_schedule():
     args = request.args
     query = ModelFilmSchedule.query.all()
     if 'film_name' in args:
-        query = ModelFilmSchedule.query.filter(ModelFilm.film_name.like('%' + args['film_name'] + '%')).all()
+        query = ModelFilmSchedule.query.join(ModelFilm).filter(ModelFilm.film_name.contains(args['film_name'])).all()
     if 'date' in args:
-        query = ModelFilmSchedule.query.filter(ModelFilmSchedule.schedule_date.like('%' + args['date'] + '%')).all()
+        query = ModelFilmSchedule.query.filter(ModelFilmSchedule.schedule_date.contains(args['date'])).all()
     if not query:
         return {"Error": "Film not found"}, 404
 
@@ -84,7 +86,7 @@ def handler_put_film_schedule(id_schedule):
                 db_session.add(update_film_schedule)
                 db_session.commit()
                 return {"Message": "Film schedules updated succesfully",
-                        "Data": f"{update_film_schedule.schedule_studio}"}, 200
+                        "Data": f"{update_film_schedule.film.film_name}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
     else:

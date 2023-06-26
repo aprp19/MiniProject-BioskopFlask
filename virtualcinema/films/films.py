@@ -172,7 +172,7 @@ def handler_post_film_category(id_film):
                 return {"Error": "Film category already exists"}, 400
             db_session.add(add_film_category)
             db_session.commit()
-            return {"Message": "Film category added succesfully", "Data": f"{add_film_category.id_category}"}, 200
+            return {"Message": f"{ModelCategory.query.filter_by(id_category=json['id_category']).first().category_name} added to {ModelFilm.query.filter_by(id_film=id_film).first().film_name} succesfully", "Data": f"{add_film_category.id_category}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
     else:
@@ -203,11 +203,6 @@ def handler_get_report():
         response = [{
             'id_film': row.id_film,
             'film_name': row.film_name,
-            'film_duration': row.film_duration,
-            'category': [cat.category_name for cat in
-                         ModelCategory.query.filter(ModelFilmCategory.id_film == row.id_film,
-                                                    ModelCategory.id_category == ModelFilmCategory.id_category).all()],
-            'film_price': row.film_price,
             'film_selling': row.film_selling,
         } for row in query]
         return {"Message": "Success", "Count": len(response), "Data": response}, 200

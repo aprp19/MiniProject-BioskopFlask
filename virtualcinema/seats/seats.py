@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
-from virtualcinema.models.models import ModelSeat, ModelAccount
+from virtualcinema.models.models import ModelSeat, ModelAccount, ModelOrderSeat, ModelFilmSchedule
 
 seats = Blueprint('seats', __name__)
 
@@ -27,6 +27,8 @@ def handler_post_seats():
             add_seat = ModelSeat(
                 seat_number=json['seat_number'],
             )
+            if ModelSeat.query.filter_by(seat_number=json['seat_number']).first():
+                return {"Error": "Seat already exists"}, 400
             db_session.add(add_seat)
             db_session.commit()
             return {"Message": "Seat added succesfully", "Data": f"{add_seat.id_seat}"}, 200
@@ -69,3 +71,14 @@ def handler_delete_seats(id_seat):
         return {"Message": "Seat deleted succesfully"}, 200
     else:
         return {"Message": "Unauthorized"}, 403
+
+
+@seats.route('/ordered_seats/<id_schedule>', methods=['GET'])
+def handler_get_ordered_seats(id_schedule):
+    query = ModelSeat.query.filter(ModelFilmSchedule.id_schedule == id_schedule,
+                                   ModelSeat.id_seat.notin_(db_session.query(ModelOrderSeat.id_seat))).all()
+    response = [{
+        "id_seat": row.id_seat,
+        "seat_number": row.seat_number,
+    } for row in query]
+    return {"Message": "Success", "Count": len(response), "Data": response}, 200

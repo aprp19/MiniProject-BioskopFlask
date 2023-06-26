@@ -143,6 +143,7 @@ def handler_get_wallet(id_user):
             query = ModelWallet.query.all()
             response = [{
                 'id_user': row.id_user,
+                'u_name': row.account.u_name,
                 'w_balance': row.w_balance
             } for row in query]
             return {"Message": "Success", "Count": len(response), "Data": response}, 200
@@ -153,12 +154,14 @@ def handler_get_wallet(id_user):
         else:
             response = {
                 'id_user': query.id_user,
+                'u_name': query.account.u_name,
                 'w_balance': query.w_balance
             }
             return {"Message": "Success", "Data": response}, 200
     if session.u_role == 'User' and id_user == 'self':
         response = {
             'id_user': session.id_user,
+            'u_name': session.u_name,
             'w_balance': ModelWallet.query.filter_by(id_user=session.id_user).first().w_balance
         }
         return {"Message": "Success", "Data": response}, 200
@@ -179,6 +182,6 @@ def handler_put_wallet(id_user):
             query.w_balance = int(query.w_balance) + int(json['w_balance'])
         db_session.add(query)
         db_session.commit()
-        return {"Message": "Wallet updated", "Current wallet": query.w_balance}, 200
+        return {"Message": "Wallet updated", "User": query.account.u_name, "Current wallet": query.w_balance}, 200
     else:
         return {"Error": "Unauthorized"}, 401
