@@ -75,7 +75,15 @@ def handler_post_orders():
                 ModelSeat.seat_number == each_seat
             ).first():
                 return {"Error": "Seat already exists"}, 400
-
         db_session.add(add_order)
+        db_session.commit()
+
+        add_payment = ModelPayment(
+            id_order=add_order.id_order,
+            order_total=add_order.order_total,
+            payment_status="Not Paid"
+        )
+
+        db_session.add(add_payment)
         db_session.commit()
         return {"Message": "Order added succesfully"}, 200

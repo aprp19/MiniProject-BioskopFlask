@@ -50,6 +50,12 @@ def handler_get_account(id_user):
 @account.route('/account', methods=['POST'])
 def handler_post_account():
     if request.is_json:
+
+        if request.authorization is None:
+            pass
+        elif ModelAccount.query.filter_by(u_username=request.authorization.username).first().u_role == 'User':
+            return {"Error": "Can't add account, you already logged in"}, 401
+
         json = request.get_json()
         add_account = ModelAccount(
             u_name=json['u_name'],
