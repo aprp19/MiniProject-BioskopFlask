@@ -73,6 +73,7 @@ def handler_delete_seats(id_seat):
         return {"Message": "Unauthorized"}, 403
 
 
+# Experimental
 @seats.route('/ordered_seats/<id_schedule>', methods=['GET'])
 def handler_get_ordered_seats(id_schedule):
     query = ModelSeat.query.filter(ModelFilmSchedule.id_schedule == id_schedule,

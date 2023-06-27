@@ -78,12 +78,4 @@ def handler_post_orders():
 
         db_session.add(add_order)
         db_session.commit()
-
-        add_payment = ModelPayment(
-            id_order=ModelOrder.query.filter_by(id_user=session.id_user).first().id_order,
-            order_total=add_order.order_total,
-            payment_status="Not Paid"
-        )
-        db_session.add(add_payment)
-        db_session.commit()
         return {"Message": "Order added succesfully"}, 200
