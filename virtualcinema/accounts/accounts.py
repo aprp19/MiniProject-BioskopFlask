@@ -47,10 +47,20 @@ def handler_get_account(id_user):
         return {"Error": "Unauthorized"}, 401
 
 
-@account.route('/account', methods=['POST'])
+@account.route('/account/login', methods=['GET'])
+def handler_login():
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if request.authorization is None:
+        return {"Error": "Please fill in your username and password"}, 401
+    if not session:
+        return {"Error": "Wrong Username/Password"}, 401
+    if request.authorization:
+        return {"Message": "Success", "User": session.u_name, "Role": session.u_role}, 200
+
+
+@account.route('/account/register', methods=['POST'])
 def handler_post_account():
     if request.is_json:
-
         if request.authorization is None:
             pass
         elif ModelAccount.query.filter_by(u_username=request.authorization.username).first().u_role == 'User':
@@ -178,16 +188,13 @@ def handler_get_wallet(id_user):
 @account.route('/wallet/topup/<id_user>', methods=['PUT'])
 @auth
 def handler_put_wallet(id_user):
-    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
-    if session.u_role == 'Admin':
-        query = ModelWallet.query.filter_by(id_user=id_user).first()
-        if not query:
-            return {"Error": "Wallet not found"}, 404
-        json = request.get_json()
-        if 'w_balance' in json:
-            query.w_balance = int(query.w_balance) + int(json['w_balance'])
-        db_session.add(query)
-        db_session.commit()
-        return {"Message": "Wallet updated", "User": query.account.u_name, "Current wallet": query.w_balance}, 200
-    else:
-        return {"Error": "Unauthorized"}, 401
+    # session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    query = ModelWallet.query.filter_by(id_user=id_user).first()
+    if not query:
+        return {"Error": "Wallet not found"}, 404
+    json = request.get_json()
+    if 'w_balance' in json:
+        query.w_balance = int(query.w_balance) + int(json['w_balance'])
+    db_session.add(query)
+    db_session.commit()
+    return {"Message": "Wallet updated", "User": query.account.u_name, "Current wallet": query.w_balance}, 200

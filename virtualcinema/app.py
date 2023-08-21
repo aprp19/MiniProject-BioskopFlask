@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from virtualcinema.db.database import db
 from virtualcinema.accounts.accounts import account
 from virtualcinema.films.films import film
@@ -9,6 +10,7 @@ from virtualcinema.payments.payments import payments
 from virtualcinema.tickets.tickets import tickets
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/VirtualCinema'
 db.init_app(app)
 

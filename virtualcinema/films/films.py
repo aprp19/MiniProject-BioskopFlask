@@ -20,6 +20,8 @@ def handler_get_film(id_film):
                                                     ModelCategory.id_category == ModelFilmCategory.id_category).all()],
             'film_price': row.film_price,
             'film_selling': row.film_selling,
+            'film_poster': row.film_poster,
+            'film_desc': row.film_desc
         } for row in query]
         return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
@@ -36,8 +38,38 @@ def handler_get_film(id_film):
                                                     ModelCategory.id_category == ModelFilmCategory.id_category).all()],
             'film_price': query.film_price,
             'film_selling': query.film_selling,
+            'film_poster': query.film_poster,
+            'film_desc': query.film_desc
         }
         return {"Message": "Success", "Data": response}, 200
+
+
+@film.route('/film/search', methods=['GET'])
+def handler_search_film():
+    args = request.args
+    query = ModelFilm.query.all()
+    if 'film_name' in args:
+        query = ModelFilm.query.filter(ModelFilm.film_name.contains(args['film_name'])).all()
+    if 'category' in args:
+        query = ModelFilm.query.join(ModelFilmCategory).filter(ModelFilm.film_name.contains(args['film_name'])).all()
+    if 'date' in args:
+        query = ModelFilm.query.filter(ModelFilm.film_name.contains(args['film_name'])).all()
+    if not query:
+        return {"Error": "Film not found"}, 404
+
+    response = [{
+        'id_film': row.id_film,
+        'film_name': row.film_name,
+        'film_duration': row.film_duration,
+        'category': [cat.category_name for cat in
+                     ModelCategory.query.filter(ModelFilmCategory.id_film == row.id_film,
+                                                ModelCategory.id_category == ModelFilmCategory.id_category).all()],
+        'film_price': row.film_price,
+        'film_selling': row.film_selling,
+        'film_poster': row.film_poster,
+        'film_desc': row.film_desc
+    } for row in query]
+    return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
 
 @film.route('/film', methods=['POST'])
@@ -50,7 +82,9 @@ def handler_post_film():
             add_film = ModelFilm(
                 film_name=json['film_name'],
                 film_duration=json['film_duration'],
-                film_price=json['film_price']
+                film_price=json['film_price'],
+                film_poster=json['film_poster'],
+                film_desc=json['film_desc']
             )
             if ModelFilm.query.filter_by(film_name=add_film.film_name).first():
                 return {"Error": "Film already exists"}, 400
@@ -77,6 +111,8 @@ def handler_put_film(id_film):
                 update_film.film_name = json['film_name']
                 update_film.film_duration = json['film_duration']
                 update_film.film_price = json['film_price']
+                update_film.film_poster = json['film_poster']
+                update_film.film_desc = json['film_desc']
                 db_session.add(update_film)
                 db_session.commit()
                 return {"Message": "Film updated succesfully", "Data": f"{update_film.film_name}"}, 200

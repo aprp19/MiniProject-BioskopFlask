@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
 from virtualcinema.models.models import ModelOrder, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm, \
-    ModelSeat, ModelPayment, ModelWallet, ModelTickets
+    ModelSeat, ModelPayment
 
 orders = Blueprint('orders', __name__)
 
@@ -24,10 +24,11 @@ def handler_get_orders():
         "id_user": row.id_user,
         "id_schedule": row.id_schedule,
         "film_name": row.schedules.film.film_name,
-        "order_seat": row.order_seat,
+        "order_seat": [ModelSeat.query.filter_by(id_seat=seat.id_seat).first().seat_number for seat in row.orderseat],
         "order_studio": row.order_studio,
         "order_date": row.order_date,
         "order_time": row.order_time,
+        "order_status": ModelPayment.query.filter_by(id_order=row.id_order).first().payment_status
     } for row in query]
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
@@ -59,7 +60,7 @@ def handler_post_orders():
             add_order.orderseat.append(
                 ModelOrderSeat(
                     id_order=add_order.id_order,
-                    id_seat=ModelSeat.query.filter_by(seat_number=seat).first().id_seat,
+                    id_seat=seat,
                     film_name=get_FilmSchedule.film.film_name,
                     schedule_studio=get_FilmSchedule.schedule_studio,
                     schedule_date=get_FilmSchedule.schedule_date,
@@ -72,7 +73,7 @@ def handler_post_orders():
                                               schedule_date=add_order.order_date,
                                               schedule_time=add_order.order_time).join(
                 ModelSeat).filter(
-                ModelSeat.seat_number == each_seat
+                ModelSeat.id_seat == each_seat
             ).first():
                 return {"Error": "Seat already exists"}, 400
         db_session.add(add_order)

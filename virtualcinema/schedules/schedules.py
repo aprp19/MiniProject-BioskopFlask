@@ -23,6 +23,22 @@ def handler_get_film_schedule():
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
 
+@film_schedule.route('/film_schedule/<id_film>', methods=['GET'])
+def handler_get_film_schedule_by_id(id_film):
+    query = ModelFilmSchedule.query.filter_by(id_film=id_film).all()
+    response = [{
+        "id_schedule": row.id_schedule,
+        "film_name": row.film.film_name,
+        "schedule_studio": row.schedule_studio,
+        "schedule_date": row.schedule_date,
+        "schedule_time": row.schedule_time,
+        "schedule_price": row.schedule_price,
+    } for row in query]
+    if not query:
+        return {"Error": "Schedule not found"}, 404
+    return {"Message": "Success", "Data": response}, 200
+
+
 @film_schedule.route('/film_schedule/search', methods=['GET'])
 def handler_search_film_schedule():
     args = request.args

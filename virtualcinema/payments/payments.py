@@ -28,11 +28,11 @@ def handler_get_payments():
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
 
 
-@payments.route('/payments/<id_payment>/<action>', methods=['PUT'])
+@payments.route('/payments/<id_order>/<action>', methods=['PUT'])
 @auth
-def handler_put_payments(id_payment, action):
+def handler_put_payments(id_order, action):
     session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
-    query = ModelPayment.query.filter_by(id_payment=id_payment).first()
+    query = ModelPayment.query.filter_by(id_order=id_order).first()
     movie_selling = ModelFilm.query.filter_by(id_film=query.orders.schedules.film.id_film).first()
 
     if action == 'pay':
@@ -67,5 +67,6 @@ def handler_put_payments(id_payment, action):
         for row in query_order_seat:
             db_session.delete(row)
             db_session.commit()
+        return {"Message": "Movie Cancelled"}, 200
     else:
         return {"Error": "Invalid action"}, 400

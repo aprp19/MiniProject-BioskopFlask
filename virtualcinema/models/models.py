@@ -32,6 +32,8 @@ class ModelFilm(db.Model):
     film_selling = db.Column(db.Integer, nullable=False)
     film_category = db.relationship('ModelFilmCategory', backref='film', lazy=True)
     film_schedule = db.relationship('ModelFilmSchedule', backref='film', lazy=True)
+    film_poster = db.Column(db.String(25))
+    film_desc = db.Column(db.String)
 
 
 class ModelCategory(db.Model):
@@ -76,7 +78,7 @@ class ModelOrder(db.Model):
     id_user = db.Column(db.Integer, db.ForeignKey('account.id_user'), nullable=False)
     id_schedule = db.Column(db.Integer, db.ForeignKey('filmschedule.id_schedule'), nullable=False)
     order_studio = db.Column(db.String(25), nullable=False)
-    order_seat = db.Column(db.String(25), nullable=False)
+    order_seat = db.Column(db.Integer, nullable=False)
     order_date = db.Column(db.String(25), nullable=False)
     order_time = db.Column(db.String(25), nullable=False)
     order_qty = db.Column(db.Integer, nullable=False)

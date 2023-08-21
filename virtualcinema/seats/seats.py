@@ -2,7 +2,8 @@ from flask import Blueprint, request
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
-from virtualcinema.models.models import ModelSeat, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm
+from virtualcinema.models.models import ModelSeat, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm, \
+    ModelOrder
 
 seats = Blueprint('seats', __name__)
 
@@ -76,7 +77,7 @@ def handler_delete_seats(id_seat):
 # Experimental
 @seats.route('/ordered_seats/<id_schedule>', methods=['GET'])
 def handler_get_ordered_seats(id_schedule):
-    query_seat = db_session.query(ModelSeat.id_seat).filter(ModelFilmSchedule.id_schedule == id_schedule).except_(db_session.query(ModelOrderSeat.id_seat)).order_by(ModelSeat.id_seat).all()
+    query_seat = ModelOrderSeat.query.join(ModelOrder).filter(ModelOrder.id_schedule == id_schedule).all()
 
     response = [{
         "id_seat": row.id_seat,
