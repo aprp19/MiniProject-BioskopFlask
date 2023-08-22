@@ -55,7 +55,7 @@ def handler_login():
     if not session:
         return {"Error": "Wrong Username/Password"}, 401
     if request.authorization:
-        return {"Message": "Success", "User": session.u_name, "Role": session.u_role}, 200
+        return {"Message": "Success", "user": session.u_name, "role": session.u_role}, 200
 
 
 @account.route('/account/register', methods=['POST'])
