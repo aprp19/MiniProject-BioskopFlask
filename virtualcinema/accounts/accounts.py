@@ -10,31 +10,7 @@ account = Blueprint('account', __name__)
 @auth
 def handler_get_account(id_user):
     session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
-    if session.u_role == 'Admin':
-        if id_user == 'all':
-            query = ModelAccount.query.join(ModelWallet).all()
-            response = [{
-                'id_user': row.id_user,
-                'u_name': row.u_name,
-                'u_username': row.u_username,
-                'u_role': row.u_role,
-                'wallet': ModelWallet.query.filter_by(id_user=row.id_user).first().w_balance
-            } for row in query]
-            return {"Message": "Success", "Count": len(response), "Data": response}, 200
-
-        query = ModelAccount.query.filter_by(id_user=id_user).first()
-        if not query:
-            return {"Error": "Account not found"}, 404
-        else:
-            response = {
-                'id_user': query.id_user,
-                'u_name': query.u_name,
-                'u_username': query.u_username,
-                'u_role': query.u_role,
-                'wallet': ModelWallet.query.filter_by(id_user=query.id_user).first().w_balance
-            }
-            return {"Message": "Success", "Data": response}, 200
-    if session.u_role == 'User' and id_user == 'self':
+    if id_user == 'self':
         response = {
             'id_user': session.id_user,
             'u_name': session.u_name,
@@ -47,6 +23,24 @@ def handler_get_account(id_user):
         return {"Error": "Unauthorized"}, 401
 
 
+@account.route('/account/alluser', methods=['GET'])
+@auth
+def handler_get_allaccount():
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        query = ModelAccount.query.join(ModelWallet).all()
+        response = [{
+            'id_user': row.id_user,
+            'u_name': row.u_name,
+            'u_username': row.u_username,
+            'u_role': row.u_role,
+            'wallet': ModelWallet.query.filter_by(id_user=row.id_user).first().w_balance
+        } for row in query]
+        return {"Message": "Success", "Count": len(response), "Data": response}, 200
+    else:
+        return {"Error": "Unauthorized"}, 401
+
+
 @account.route('/account/login', methods=['GET'])
 def handler_login():
     session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
@@ -55,7 +49,7 @@ def handler_login():
     if not session:
         return {"Error": "Wrong Username/Password"}, 401
     if request.authorization:
-        return {"Message": "Success", "user": session.u_name, "role": session.u_role}, 200
+        return {"Message": "Success", "user": session.u_name, "role": session.u_role, "status": 200}, 200
 
 
 @account.route('/account/register', methods=['POST'])
