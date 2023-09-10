@@ -12,7 +12,9 @@ def handler_get_film_schedule():
     query = ModelFilmSchedule.query.all()
     response = [{
         "id_schedule": row.id_schedule,
+        "id_film": row.film.id_film,
         "film_name": row.film.film_name,
+        "film_poster": row.film.film_poster,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,
         "schedule_time": row.schedule_time,
@@ -52,7 +54,9 @@ def handler_search_film_schedule():
 
     response = [{
         "id_schedule": row.id_schedule,
+        "id_film": row.film.id_film,
         "film_name": row.film.film_name,
+        "film_poster": row.film.film_poster,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,
         "schedule_time": row.schedule_time,

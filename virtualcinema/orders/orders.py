@@ -23,11 +23,13 @@ def handler_get_orders():
         "id_order": row.id_order,
         "id_user": row.id_user,
         "id_schedule": row.id_schedule,
+        "order_username": ModelAccount.query.filter_by(id_user=row.id_user).first().u_username,
         "film_name": row.schedules.film.film_name,
         "order_seat": [ModelSeat.query.filter_by(id_seat=seat.id_seat).first().seat_number for seat in row.orderseat],
         "order_studio": row.order_studio,
         "order_date": row.order_date,
         "order_time": row.order_time,
+        "order_price": row.order_total,
         "order_status": ModelPayment.query.filter_by(id_order=row.id_order).first().payment_status
     } for row in query]
     return {"Message": "Success", "Count": len(response), "Data": response}, 200

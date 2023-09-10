@@ -83,13 +83,21 @@ def handler_post_film():
                 film_name=json['film_name'],
                 film_duration=json['film_duration'],
                 film_price=json['film_price'],
-                film_poster=json['film_poster'],
-                film_desc=json['film_desc']
+                film_desc=json['film_desc'],
+                film_selling=json['film_selling']
             )
             if ModelFilm.query.filter_by(film_name=add_film.film_name).first():
                 return {"Error": "Film already exists"}, 400
             db_session.add(add_film)
             db_session.commit()
+
+            for cat in json['id_category']:
+                add_film_category = ModelFilmCategory(
+                    id_film=ModelFilm.query.filter_by(film_name=add_film.film_name).first().id_film,
+                    id_category=cat
+                )
+                db_session.add(add_film_category)
+                db_session.commit()
             return {"Message": "Film added succesfully", "Data": f"{add_film.film_name}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
@@ -111,11 +119,31 @@ def handler_put_film(id_film):
                 update_film.film_name = json['film_name']
                 update_film.film_duration = json['film_duration']
                 update_film.film_price = json['film_price']
-                update_film.film_poster = json['film_poster']
                 update_film.film_desc = json['film_desc']
                 db_session.add(update_film)
                 db_session.commit()
                 return {"Message": "Film updated succesfully", "Data": f"{update_film.film_name}"}, 200
+        else:
+            return {"Message": "Invalid Request"}, 400
+    else:
+        return {"Message": "Unauthorized"}, 403
+
+
+@film.route('/film_poster/<id_film>', methods=['PUT'])
+@auth
+def handler_put_film_poster(id_film):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        if request.is_json:
+            json = request.get_json()
+            update_film = ModelFilm.query.filter_by(id_film=id_film).first()
+            if not update_film:
+                return {"Error": "Film not found"}, 404
+            else:
+                update_film.film_poster = json['film_poster']
+                db_session.add(update_film)
+                db_session.commit()
+                return {"Message": "Film Poster updated succesfully", "Data": f"{update_film.film_name}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
     else:
@@ -128,6 +156,12 @@ def handler_delete_film(id_film):
     session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
     if session.u_role == 'Admin':
         query = ModelFilm.query.filter_by(id_film=id_film).first()
+        film_category = ModelFilmCategory.query.filter_by(id_film=id_film).all()
+
+        for cat in film_category:
+            db_session.delete(cat)
+            db_session.commit()
+            
         if not query:
             return {"Error": "Film not found"}, 404
         db_session.delete(query)
@@ -178,6 +212,26 @@ def handler_post_category():
         return {"Message": "Unauthorized"}, 403
 
 
+@film.route('/category/<id_category>', methods=['PUT'])
+@auth
+def handler_put_category(id_category):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        if request.is_json:
+            json = request.get_json()
+            update_category = ModelCategory.query.filter_by(id_category=id_category).first()
+            if ModelCategory.query.filter_by(category_name=json['category_name']).first():
+                return {"Error": "Category already exists"}, 400
+            update_category.category_name = json['category_name']
+            db_session.add(update_category)
+            db_session.commit()
+            return {"Message": "Category edited succesfully", "Data": f"{update_category.category_name}"}, 200
+        else:
+            return {"Message": "Invalid Request"}, 400
+    else:
+        return {"Message": "Unauthorized"}, 403
+
+
 @film.route('/category/<id_category>', methods=['DELETE'])
 @auth
 def handler_delete_category(id_category):
@@ -200,15 +254,56 @@ def handler_post_film_category(id_film):
     if session.u_role == 'Admin':
         if request.is_json:
             json = request.get_json()
-            add_film_category = ModelFilmCategory(
-                id_film=id_film,
-                id_category=json['id_category']
-            )
-            if ModelFilmCategory.query.filter_by(id_film=id_film, id_category=json['id_category']).first():
-                return {"Error": "Film category already exists"}, 400
-            db_session.add(add_film_category)
-            db_session.commit()
-            return {"Message": f"{ModelCategory.query.filter_by(id_category=json['id_category']).first().category_name} added to {ModelFilm.query.filter_by(id_film=id_film).first().film_name} succesfully", "Data": f"{add_film_category.id_category}"}, 200
+
+            for duplicate_category in range(0, len(json['id_category'])):
+                for data in range(duplicate_category + 1, len(json['id_category'])):
+                    if json['id_category'][data] == json['id_category'][duplicate_category]:
+                        return {"Error": "Duplicate Film Category"}, 400
+
+            for category in json['id_category']:
+
+                if ModelFilmCategory.query.filter_by(id_film=id_film, id_category=category).first():
+                    return {"Error": "Film category already exists"}, 400
+
+            for cat in json['id_category']:
+                add_film_category = ModelFilmCategory(
+                    id_film=id_film,
+                    id_category=cat
+                )
+                db_session.add(add_film_category)
+                db_session.commit()
+
+            return {
+                "Message": f"{[ModelCategory.query.filter_by(id_category=cat).first().category_name for cat in json['id_category']]} added to {ModelFilm.query.filter_by(id_film=id_film).first().film_name} succesfully",
+                "Data": f"{add_film_category.id_category}"}, 200
+        else:
+            return {"Message": "Invalid Request"}, 400
+    else:
+        return {"Message": "Unauthorized"}, 403
+
+
+@film.route('/film_category/<id_film>', methods=['PUT'])
+@auth
+def handler_put_film_category(id_film):
+    session = ModelAccount.query.filter_by(u_username=request.authorization.username).first()
+    if session.u_role == 'Admin':
+        if request.is_json:
+            json = request.get_json()
+            update_cat = ModelFilmCategory.query.filter_by(id_film=id_film).all()
+
+            for each in update_cat:
+                db_session.delete(each)
+                db_session.commit()
+
+            for cat in json['id_category']:
+                add_film_category = ModelFilmCategory(
+                    id_film=id_film,
+                    id_category=cat
+                )
+                db_session.add(add_film_category)
+                db_session.commit()
+            return {
+                "Message": f"{[ModelCategory.query.filter_by(id_category=cat).first().category_name for cat in json['id_category']]} added to {ModelFilm.query.filter_by(id_film=id_film).first().film_name} succesfully","Data": f"{len(json['id_category'])}"}, 200
         else:
             return {"Message": "Invalid Request"}, 400
     else:
@@ -240,6 +335,7 @@ def handler_get_report():
             'id_film': row.id_film,
             'film_name': row.film_name,
             'film_selling': row.film_selling,
+            'film_poster': row.film_poster,
         } for row in query]
         return {"Message": "Success", "Count": len(response), "Data": response}, 200
     else:

@@ -29,7 +29,7 @@ class ModelFilm(db.Model):
     film_name = db.Column(db.String(25), nullable=False)
     film_duration = db.Column(db.Integer, nullable=False)
     film_price = db.Column(db.Integer, nullable=False)
-    film_selling = db.Column(db.Integer, nullable=False)
+    film_selling = db.Column(db.Integer)
     film_category = db.relationship('ModelFilmCategory', backref='film', lazy=True)
     film_schedule = db.relationship('ModelFilmSchedule', backref='film', lazy=True)
     film_poster = db.Column(db.String(25))
