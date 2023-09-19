@@ -14,7 +14,6 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/VirtualCinema'
 db.init_app(app)
 
-
 app.register_blueprint(account)
 app.register_blueprint(film)
 app.register_blueprint(film_schedule)

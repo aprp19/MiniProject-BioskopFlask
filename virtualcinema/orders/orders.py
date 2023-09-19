@@ -1,9 +1,11 @@
-from flask import Blueprint, request
+from datetime import datetime, timedelta
+
+from flask import Blueprint, request, json
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
-from virtualcinema.models.models import ModelOrder, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelFilm, \
-    ModelSeat, ModelPayment
+from virtualcinema.models.models import ModelOrder, ModelAccount, ModelOrderSeat, ModelFilmSchedule, ModelSeat, \
+    ModelPayment
 
 orders = Blueprint('orders', __name__)
 
@@ -19,6 +21,8 @@ def handler_get_orders():
     if not query:
         return {"Error": "Orders not found"}, 404
 
+    expiration_check()
+
     response = [{
         "id_order": row.id_order,
         "id_user": row.id_user,
@@ -28,8 +32,9 @@ def handler_get_orders():
         "order_seat": [ModelSeat.query.filter_by(id_seat=seat.id_seat).first().seat_number for seat in row.orderseat],
         "order_studio": row.order_studio,
         "order_date": row.order_date,
-        "order_time": row.order_time,
+        "order_time": json.dumps(row.order_time, default=str),
         "order_price": row.order_total,
+        "order_expiration": json.dumps(row.expiration, default=str),
         "order_status": ModelPayment.query.filter_by(id_order=row.id_order).first().payment_status
     } for row in query]
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
@@ -42,6 +47,7 @@ def handler_post_orders():
     if request.is_json:
         json = request.get_json()
         get_FilmSchedule = ModelFilmSchedule.query.filter_by(id_schedule=json['id_schedule']).first()
+        expiration = datetime.now() + timedelta(minutes=5)
         add_order = ModelOrder(
             id_user=session.id_user,
             id_schedule=json['id_schedule'],
@@ -50,6 +56,7 @@ def handler_post_orders():
             order_date=get_FilmSchedule.schedule_date,
             order_time=get_FilmSchedule.schedule_time,
             order_qty=len(json['order_seat']),
+            expiration=expiration.strftime("%H:%M"),
             order_total=get_FilmSchedule.schedule_price * len(json['order_seat'])
         )
 
@@ -90,3 +97,20 @@ def handler_post_orders():
         db_session.add(add_payment)
         db_session.commit()
         return {"Message": "Order added succesfully"}, 200
+
+
+def expiration_check():
+    query_orders = ModelOrder.query.join(ModelPayment).filter(ModelOrder.id_order == ModelPayment.id_order,
+                                                              ModelPayment.payment_status == "Not Paid").all()
+    current_time = datetime.now()
+    for row in query_orders:
+        query_payment = ModelPayment.query.filter_by(id_order=row.id_order).first()
+        expiration = row.expiration.strftime("%H:%M")
+        if current_time.strftime("%H:%M") > expiration:
+            query_payment.payment_status = "Expired"
+            db_session.add(query_payment)
+            db_session.commit()
+            query_order_seat = ModelOrderSeat.query.filter_by(id_order=row.id_order).all()
+            for each in query_order_seat:
+                db_session.delete(each)
+                db_session.commit()

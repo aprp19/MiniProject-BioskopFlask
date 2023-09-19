@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, json
 
 from virtualcinema.auth import auth
 from virtualcinema.db import db_session
@@ -17,7 +17,7 @@ def handler_get_film_schedule():
         "film_poster": row.film.film_poster,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,
-        "schedule_time": row.schedule_time,
+        "schedule_time": json.dumps(row.schedule_time, default=str),
         "schedule_price": row.schedule_price,
     } for row in query]
     if not query:
@@ -33,7 +33,7 @@ def handler_get_film_schedule_by_id(id_film):
         "film_name": row.film.film_name,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,
-        "schedule_time": row.schedule_time,
+        "schedule_time": json.dumps(row.schedule_time, default=str),
         "schedule_price": row.schedule_price,
     } for row in query]
     if not query:
@@ -48,7 +48,7 @@ def handler_search_film_schedule():
     if 'film_name' in args:
         query = ModelFilmSchedule.query.join(ModelFilm).filter(ModelFilm.film_name.contains(args['film_name'])).all()
     if 'date' in args:
-        query = ModelFilmSchedule.query.filter(ModelFilmSchedule.schedule_date.contains(args['date'])).all()
+        query = ModelFilmSchedule.query.filter(ModelFilmSchedule.schedule_date == args['date']).all()
     if not query:
         return {"Error": "Film not found"}, 404
 
@@ -59,7 +59,7 @@ def handler_search_film_schedule():
         "film_poster": row.film.film_poster,
         "schedule_studio": row.schedule_studio,
         "schedule_date": row.schedule_date,
-        "schedule_time": row.schedule_time,
+        "schedule_time": json.dumps(row.schedule_time, default=str),
         "schedule_price": row.schedule_price,
     } for row in query]
     return {"Message": "Success", "Count": len(response), "Data": response}, 200
